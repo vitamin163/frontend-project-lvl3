@@ -1,0 +1,21 @@
+---
+plugins:
+  - import
+  - prettier
+
+parser: babel-eslint
+
+env:
+  es6: true
+  browser: true
+  node: true
+  jest: true
+
+extends:
+  - "airbnb-base"
+  - "plugin:prettier/recommended"
+
+rules:
+  no-console: 0
+  no-alert: 0
+  eqeqeq: 0
