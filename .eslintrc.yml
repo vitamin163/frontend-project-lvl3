@@ -14,8 +14,3 @@ env:
 extends:
   - "airbnb-base"
   - "plugin:prettier/recommended"
-
-rules:
-  no-console: 0
-  no-alert: 0
-  eqeqeq: 0
