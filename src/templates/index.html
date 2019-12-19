@@ -14,20 +14,15 @@
       <h1 class="display-4">RSS лента новостей</h1>
 
       <hr class="my-4" />
-      <p class="lead">
-        ТЕКС ТЕКСТ ТЕКСТ
-      </p>
       <form>
         <div class="form-group">
-          <label for="exampleFormControlTextarea1"
-            >Форма для добавления rss потока</label
-          >
-          <textarea
+          <label for="main-input">Форма для добавления rss потока</label>
+          <input
+            id="main-input"
             class="form-control"
-            id="exampleFormControlTextarea1"
-            rows="3"
+            type="text"
             placeholder="Введите URL"
-          ></textarea>
+          />
         </div>
         <button
           id="addRssButton"
@@ -39,5 +34,6 @@
         </button>
       </form>
     </div>
+    <div id="rss" class="container-fluid"></div>
   </body>
 </html>

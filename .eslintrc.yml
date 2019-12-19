@@ -12,5 +12,8 @@ env:
   jest: true
 
 extends:
-  - "airbnb-base"
-  - "plugin:prettier/recommended"
+  - 'airbnb-base'
+  - 'plugin:prettier/recommended'
+
+rules:
+  no-console: 0

@@ -2,66 +2,57 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import isURL from 'validator/lib/isURL';
 import { watch } from 'melanke-watchjs';
+import axios from 'axios';
+import parser from './parser';
+import { renderFeed, renderInput } from './renderers';
 // import $ from 'jquery';
 
 export default () => {
   const state = {
-    rssAddingProcess: {
-      inputValue: '',
-      validationState: null,
-    },
+    inputValue: '',
+    validationState: null,
+    feedURL: [],
+    feed: [],
   };
 
-  const feedList = new Set();
-
-  const textArea = document.getElementById('exampleFormControlTextarea1');
+  const input = document.getElementById('main-input');
   const addRssButton = document.querySelector('#addRssButton');
 
   const inputValueHandler = e => {
     const { value } = e.target;
-    state.rssAddingProcess.inputValue = value;
+    state.inputValue = value;
   };
 
   const validationHandler = () => {
-    const { inputValue } = state.rssAddingProcess;
-    const validation = isURL(inputValue) && !feedList.has(inputValue);
-    state.rssAddingProcess.validationState = validation;
+    const { inputValue } = state;
+    const validation =
+      isURL(inputValue, {
+        protocols: ['http', 'https'],
+        require_protocol: true,
+      }) && !state.feedURL.includes(inputValue);
+    state.validationState = validation;
   };
 
   const addRssButtonHandler = e => {
     e.preventDefault();
-    const { inputValue } = state.rssAddingProcess;
-    feedList.add(inputValue);
-    state.rssAddingProcess = {
-      inputValue: '',
-      validationState: null,
-    };
-    // console.log(feedList);
+    const { inputValue, feedURL, feed } = state;
+    feedURL.push(inputValue);
+    const url = `https://cors-anywhere.herokuapp.com/${inputValue}`;
+    axios
+      .get(url)
+      .then(response => {
+        feed.push(parser(response.data));
+      })
+      .catch(console.log);
+
+    state.inputValue = '';
+    state.validationState = null;
   };
 
-  textArea.addEventListener('input', inputValueHandler);
-  textArea.addEventListener('input', validationHandler);
+  input.addEventListener('input', inputValueHandler);
+  input.addEventListener('input', validationHandler);
   addRssButton.addEventListener('click', addRssButtonHandler);
 
-  const render = stateApp => {
-    const { inputValue, validationState } = stateApp.rssAddingProcess;
-    if (validationState === null) {
-      addRssButton.disabled = true;
-      textArea.classList.remove('is-valid');
-      textArea.value = '';
-    } else if (!inputValue) {
-      addRssButton.disabled = true;
-      textArea.classList.remove('is-invalid');
-    } else if (validationState) {
-      textArea.classList.add('is-valid');
-      textArea.classList.remove('is-invalid');
-      addRssButton.disabled = false;
-    } else {
-      textArea.classList.add('is-invalid');
-      textArea.classList.remove('is-valid');
-      addRssButton.disabled = true;
-    }
-  };
-
-  watch(state, () => render(state));
+  watch(state, 'inputValue', () => renderInput(state));
+  watch(state, 'feed', () => renderFeed(state.feed));
 };
