@@ -33,18 +33,39 @@ export default () => {
     state.validationState = validation;
   };
 
+  const request = links => {
+    const { feed } = state;
+
+    if (links.length <= 0) {
+      return null;
+    }
+    const promises = links.map(url => {
+      const link = `https://cors-anywhere.herokuapp.com/${url}`;
+      return axios
+        .get(link)
+        .then(v => ({ result: 'success', value: v }))
+        .catch(e => ({ result: 'error', error: e }));
+    });
+
+    const promisesAll = Promise.all(promises);
+
+    return promisesAll.then(responses => {
+      feed.splice(0, feed.length);
+      responses.map(promise => {
+        if (promise.result === 'success') {
+          return feed.push(parser(promise.value.data));
+        }
+        return console.log(`${promise.result} ${promise.error}`);
+      });
+    });
+  };
+
+  setInterval(() => request(state.feedURL), 5000);
+
   const addRssButtonHandler = e => {
     e.preventDefault();
-    const { inputValue, feedURL, feed } = state;
+    const { inputValue, feedURL } = state;
     feedURL.push(inputValue);
-    const url = `https://cors-anywhere.herokuapp.com/${inputValue}`;
-    axios
-      .get(url)
-      .then(response => {
-        feed.push(parser(response.data));
-      })
-      .catch(console.log);
-
     state.inputValue = '';
     state.validationState = null;
   };
@@ -55,4 +76,5 @@ export default () => {
 
   watch(state, 'inputValue', () => renderInput(state));
   watch(state, 'feed', () => renderFeed(state.feed));
+  watch(state, 'feedURL', () => request(state.feedURL));
 };
