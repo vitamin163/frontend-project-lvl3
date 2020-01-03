@@ -3,9 +3,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import isURL from 'validator/lib/isURL';
 import { watch } from 'melanke-watchjs';
 import axios from 'axios';
+// import $ from 'jquery';
 import parser from './parser';
 import { renderFeed, renderInput } from './renderers';
-// import $ from 'jquery';
 
 export default () => {
   const state = {
@@ -35,7 +35,6 @@ export default () => {
 
   const request = links => {
     const { feed } = state;
-
     if (links.length <= 0) {
       return null;
     }
@@ -46,9 +45,7 @@ export default () => {
         .then(v => ({ result: 'success', value: v }))
         .catch(e => ({ result: 'error', error: e }));
     });
-
     const promisesAll = Promise.all(promises);
-
     return promisesAll.then(responses => {
       feed.splice(0, feed.length);
       responses.map(promise => {
@@ -60,7 +57,7 @@ export default () => {
     });
   };
 
-  setInterval(() => request(state.feedURL), 5000);
+  setInterval(() => request(state.feedURL), 20000);
 
   const addRssButtonHandler = e => {
     e.preventDefault();

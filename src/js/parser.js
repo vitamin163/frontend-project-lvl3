@@ -6,7 +6,8 @@ export default rss => {
   const title = doc.querySelector('title').textContent;
 
   const description = doc.querySelector('description').textContent;
-  // const ttl = doc.querySelector('ttl');
 
-  return { title, description };
+  const items = [...doc.querySelectorAll('item')];
+
+  return { title, description, items };
 };
