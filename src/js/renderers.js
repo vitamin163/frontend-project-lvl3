@@ -1,36 +1,36 @@
-// import $ from 'jquery';
 import _ from 'lodash';
 
-export const renderFeed = feeds => {
-  const div = document.querySelector('#rss');
-  const ul = document.createElement('ul');
-  ul.classList.add('list-group');
-  feeds.map(feed => {
-    const li = document.createElement('li');
-    li.classList.add('list-group-item');
-    const h3 = document.createElement('h3');
-    h3.textContent = feed.title;
-    const p = document.createElement('p');
-    p.textContent = feed.description;
+export const renderFeed = (feeds, feedUniqueId) => {
+  const divRss = document.querySelector('#rss');
+  const [newFeed] = feeds.filter(feed => feed.newFeedId === feedUniqueId);
+  const UlFeed = document.createElement('ul');
+  UlFeed.classList.add('list-group');
+  UlFeed.id = newFeed.feedLink;
+  const feedTitle = document.createElement('h3');
+  feedTitle.textContent = newFeed.title;
+  const feedDescription = document.createElement('p');
+  feedDescription.textContent = newFeed.description;
+  UlFeed.append(feedTitle, feedDescription);
+  divRss.append(UlFeed);
+};
 
-    const ulFeed = document.createElement('ul');
-    ulFeed.classList.add('list-group');
-    li.append(h3, p, ulFeed);
-    ul.append(li);
-    feed.items.map(item => {
-      const liFeed = document.createElement('li');
-      liFeed.classList.add('list-group-item');
-      const title = item.querySelector('title').textContent;
-      const description = item.querySelector('description').textContent;
-      const modalTemplate = document.querySelector('#myModal');
-      const modal = modalTemplate.cloneNode(true);
-      const modalId = _.uniqueId('myModal_'); // uiqueID
-      modal.setAttribute('id', modalId);
-      const modalTitle = modal.querySelector('#modal-title');
-      modalTitle.textContent = title;
-      const modalBody = modal.querySelector('#modal-body');
-      modalBody.textContent = description;
-      const content = `<div class="row">
+export const renderPost = (posts, uniqueId) => {
+  const newPosts = posts.filter(post => post.newPostId === uniqueId);
+  newPosts.map(post => {
+    const UlFeed = document.getElementById(post.feedLink);
+    const liPost = document.createElement('li');
+    liPost.classList.add('list-group-item');
+    const title = post.titleItem;
+    const description = post.descriptionItem;
+    const modalTemplate = document.querySelector('#myModal');
+    const modal = modalTemplate.cloneNode(true);
+    const modalId = _.uniqueId('myModal_');
+    modal.setAttribute('id', modalId);
+    const modalTitle = modal.querySelector('#modal-title');
+    modalTitle.textContent = title;
+    const modalBody = modal.querySelector('#modal-body');
+    modalBody.textContent = description;
+    const content = `<div class="row">
           <div class="col-sm-10">
             <h5>${title}</h5>
             <p>${description}</p>
@@ -41,17 +41,10 @@ export const renderFeed = feeds => {
             </button>
           </div>
         </div>`;
-      liFeed.innerHTML = content;
-      liFeed.append(modal);
-      ulFeed.append(liFeed);
-      return null;
-    });
-    return null;
+    liPost.innerHTML = content;
+    liPost.append(modal);
+    return UlFeed.append(liPost);
   });
-  const newUL = div.querySelector('ul')
-    ? div.querySelector('ul').replaceWith(ul)
-    : div.append(ul);
-  return newUL;
 };
 
 export const renderInput = stateApp => {

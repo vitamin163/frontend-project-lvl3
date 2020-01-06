@@ -1,18 +1,20 @@
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import isURL from 'validator/lib/isURL';
+import _ from 'lodash';
 import { watch } from 'melanke-watchjs';
 import axios from 'axios';
 // import $ from 'jquery';
 import parser from './parser';
-import { renderFeed, renderInput } from './renderers';
+import { renderFeed, renderPost, renderInput } from './renderers';
 
 export default () => {
   const state = {
     inputValue: '',
     validationState: null,
     feedURL: [],
-    feed: [],
+    feeds: [],
+    posts: [],
   };
 
   const input = document.getElementById('main-input');
@@ -33,8 +35,38 @@ export default () => {
     state.validationState = validation;
   };
 
+  let uniqueId;
+  let feedUniqueId;
+
+  const updateFeed = rss => {
+    const { feed, posts } = parser(rss);
+
+    const checkFeed = state.feeds.filter(item => item.title === feed.title);
+
+    if (checkFeed.length === 0) {
+      feedUniqueId = `feed ${_.uniqueId()}`;
+      feed.newFeedId = feedUniqueId;
+      state.feeds.push(feed);
+    }
+
+    const oldPost = state.posts.filter(post => post.feedLink === feed.feedLink);
+    const pubDates = oldPost.map(post => post.pubDate);
+    const latestPost = Math.max.apply(null, pubDates); // rename latestPostDate
+    const newPosts = posts.filter(post => post.pubDate > latestPost);
+    console.log(newPosts);
+
+    if (newPosts.length > 0) {
+      uniqueId = _.uniqueId();
+      newPosts.forEach(post => {
+        const newPost = post;
+        newPost.newPostId = uniqueId;
+      });
+      return state.posts.push(...newPosts);
+    }
+    return null;
+  };
+
   const request = links => {
-    const { feed } = state;
     if (links.length <= 0) {
       return null;
     }
@@ -47,17 +79,16 @@ export default () => {
     });
     const promisesAll = Promise.all(promises);
     return promisesAll.then(responses => {
-      feed.splice(0, feed.length);
       responses.map(promise => {
         if (promise.result === 'success') {
-          return feed.push(parser(promise.value.data));
+          return updateFeed(promise.value.data);
         }
         return console.log(`${promise.result} ${promise.error}`);
       });
     });
   };
 
-  setInterval(() => request(state.feedURL), 20000);
+  setInterval(() => request(state.feedURL), 30000);
 
   const addRssButtonHandler = e => {
     e.preventDefault();
@@ -72,6 +103,7 @@ export default () => {
   addRssButton.addEventListener('click', addRssButtonHandler);
 
   watch(state, 'inputValue', () => renderInput(state));
-  watch(state, 'feed', () => renderFeed(state.feed));
+  watch(state, 'feeds', () => renderFeed(state.feeds, feedUniqueId));
+  watch(state, 'posts', () => renderPost(state.posts, uniqueId));
   watch(state, 'feedURL', () => request(state.feedURL));
 };
