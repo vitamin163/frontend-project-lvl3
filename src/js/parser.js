@@ -1,7 +1,6 @@
 export default rss => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(rss, 'application/xml');
-  console.log(doc);
 
   const title = doc.querySelector('title').textContent;
 
@@ -14,7 +13,8 @@ export default rss => {
     const titleItem = item.querySelector('title').textContent;
     const descriptionItem = item.querySelector('description').textContent;
     const pubDate = Date.parse(item.querySelector('pubDate').textContent);
-    return { titleItem, descriptionItem, pubDate, feedLink };
+    const postLink = item.querySelector('link').textContent;
+    return { titleItem, descriptionItem, pubDate, feedLink, postLink };
   });
 
   return { feed, posts };

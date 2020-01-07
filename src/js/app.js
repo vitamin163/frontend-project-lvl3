@@ -4,7 +4,6 @@ import isURL from 'validator/lib/isURL';
 import _ from 'lodash';
 import { watch } from 'melanke-watchjs';
 import axios from 'axios';
-// import $ from 'jquery';
 import parser from './parser';
 import { renderFeed, renderPost, renderInput } from './renderers';
 
@@ -44,7 +43,7 @@ export default () => {
     const checkFeed = state.feeds.filter(item => item.title === feed.title);
 
     if (checkFeed.length === 0) {
-      feedUniqueId = `feed ${_.uniqueId()}`;
+      feedUniqueId = `feed${_.uniqueId()}`;
       feed.newFeedId = feedUniqueId;
       state.feeds.push(feed);
     }
@@ -53,7 +52,6 @@ export default () => {
     const pubDates = oldPost.map(post => post.pubDate);
     const latestPost = Math.max.apply(null, pubDates); // rename latestPostDate
     const newPosts = posts.filter(post => post.pubDate > latestPost);
-    console.log(newPosts);
 
     if (newPosts.length > 0) {
       uniqueId = _.uniqueId();
@@ -88,7 +86,7 @@ export default () => {
     });
   };
 
-  setInterval(() => request(state.feedURL), 30000);
+  setInterval(() => request(state.feedURL), 5000);
 
   const addRssButtonHandler = e => {
     e.preventDefault();

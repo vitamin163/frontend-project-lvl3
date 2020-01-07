@@ -16,34 +16,40 @@ export const renderFeed = (feeds, feedUniqueId) => {
 
 export const renderPost = (posts, uniqueId) => {
   const newPosts = posts.filter(post => post.newPostId === uniqueId);
-  newPosts.map(post => {
-    const UlFeed = document.getElementById(post.feedLink);
-    const liPost = document.createElement('li');
-    liPost.classList.add('list-group-item');
-    const title = post.titleItem;
-    const description = post.descriptionItem;
-    const modalTemplate = document.querySelector('#myModal');
-    const modal = modalTemplate.cloneNode(true);
-    const modalId = _.uniqueId('myModal_');
-    modal.setAttribute('id', modalId);
-    const modalTitle = modal.querySelector('#modal-title');
-    modalTitle.textContent = title;
-    const modalBody = modal.querySelector('#modal-body');
-    modalBody.textContent = description;
-    const content = `<div class="row">
-          <div class="col-sm-10">
-            <h5>${title}</h5>
-            <p>${description}</p>
-          </div>
-          <div class="col-sm-2">
-            <button type="button" class="btn btn-info" data-toggle='modal' data-target='#${modalId}'>
-              Read
-            </button>
-          </div>
-        </div>`;
-    liPost.innerHTML = content;
-    liPost.append(modal);
-    return UlFeed.append(liPost);
+  return new Promise(resolve => {
+    resolve(
+      newPosts.map(post => {
+        const UlFeed = document.getElementById(post.feedLink);
+
+        const liPost = document.createElement('li');
+
+        liPost.classList.add('list-group-item');
+        const title = post.titleItem;
+        const description = post.descriptionItem;
+        const link = post.postLink;
+        const modalTemplate = document.querySelector('#myModal');
+        const modal = modalTemplate.cloneNode(true);
+        const modalId = _.uniqueId('myModal_');
+        modal.setAttribute('id', modalId);
+        const modalTitle = modal.querySelector('#modal-title');
+        modalTitle.textContent = title;
+        const modalBody = modal.querySelector('#modal-body');
+        modalBody.textContent = description;
+        const content = `<div class="row">
+            <div class="col-sm-11">
+              <a href="${link}" target="blanc">${title}</a>
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-info" data-toggle='modal' data-target='#${modalId}'>
+                Read
+              </button>
+            </div>
+          </div>`;
+        liPost.innerHTML = content;
+        liPost.append(modal);
+        return UlFeed.append(liPost);
+      })
+    );
   });
 };
 
