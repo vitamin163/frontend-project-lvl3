@@ -50,8 +50,8 @@ export default () => {
 
     const oldPost = state.posts.filter(post => post.feedLink === feed.feedLink);
     const pubDates = oldPost.map(post => post.pubDate);
-    const latestPost = Math.max.apply(null, pubDates); // rename latestPostDate
-    const newPosts = posts.filter(post => post.pubDate > latestPost);
+    const latestPostDate = Math.max.apply(null, pubDates);
+    const newPosts = posts.filter(post => post.pubDate > latestPostDate);
 
     if (newPosts.length > 0) {
       uniqueId = _.uniqueId();
