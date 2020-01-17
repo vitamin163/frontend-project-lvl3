@@ -1,6 +1,7 @@
 ---
 plugins:
   - import
+  - babel
   - prettier
 
 parser: babel-eslint

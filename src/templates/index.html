@@ -30,19 +30,28 @@
       <h1 class="display-4">RSS лента новостей</h1>
 
       <hr class="my-4" />
-      <form>
+      <form id="rss-form">
         <div class="form-group">
           <label for="main-input"
             ><strong>RSS</strong> (англ. Rich Site Summary — обогащённая сводка
             сайта) — семейство XML-форматов, предназначенных для описания лент
             новостей, анонсов статей, изменений в блогах и т. п.</label
           >
-          <input
-            id="main-input"
-            class="form-control"
-            type="text"
-            placeholder="Введите URL"
-          />
+          <div id="input-container" class="row">
+            <div class="col-sm-11">
+              <input
+                id="main-input"
+                class="form-control"
+                type="text"
+                placeholder="Введите URL"
+              />
+            </div>
+            <div id="spinner-container" class="col-sm-1 d-none">
+              <div class="spinner-border text-secondary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+          </div>
         </div>
         <button
           id="addRssButton"

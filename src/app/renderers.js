@@ -2,7 +2,7 @@ import _ from 'lodash';
 
 export const renderFeed = (feeds, feedUniqueId) => {
   const divRss = document.querySelector('#rss');
-  const [newFeed] = feeds.filter(feed => feed.newFeedId === feedUniqueId);
+  const [newFeed] = feeds.filter((feed) => feed.newFeedId === feedUniqueId);
   const UlFeed = document.createElement('ul');
   UlFeed.classList.add('list-group');
   UlFeed.id = newFeed.feedLink;
@@ -15,10 +15,10 @@ export const renderFeed = (feeds, feedUniqueId) => {
 };
 
 export const renderPost = (posts, uniqueId) => {
-  const newPosts = posts.filter(post => post.newPostId === uniqueId);
-  return new Promise(resolve => {
+  const newPosts = posts.filter((post) => post.newPostId === uniqueId);
+  return new Promise((resolve) => {
     resolve(
-      newPosts.map(post => {
+      newPosts.map((post) => {
         const UlFeed = document.getElementById(post.feedLink);
 
         const liPost = document.createElement('li');
@@ -53,10 +53,16 @@ export const renderPost = (posts, uniqueId) => {
   });
 };
 
-export const renderInput = stateApp => {
-  const { inputValue, validationState } = stateApp;
+export const renderInput = (stateApp) => {
+  const { inputValue, validationState, requestState } = stateApp;
   const input = document.getElementById('main-input');
   const addRssButton = document.querySelector('#addRssButton');
+  if (requestState === 'success') {
+    input.removeAttribute('disabled');
+  }
+  if (requestState === 'submit') {
+    input.setAttribute('disabled', 'true');
+  }
   if (validationState === null) {
     addRssButton.disabled = true;
     input.classList.remove('is-valid');
@@ -64,6 +70,7 @@ export const renderInput = stateApp => {
   } else if (!inputValue) {
     addRssButton.disabled = true;
     input.classList.remove('is-invalid');
+    input.classList.remove('is-valid');
   } else if (validationState) {
     input.classList.add('is-valid');
     input.classList.remove('is-invalid');
@@ -72,5 +79,14 @@ export const renderInput = stateApp => {
     input.classList.add('is-invalid');
     input.classList.remove('is-valid');
     addRssButton.disabled = true;
+  }
+};
+
+export const renderSpinner = (requestState) => {
+  const spinnerContainer = document.getElementById('spinner-container');
+  if (requestState === 'submit') {
+    spinnerContainer.classList.remove('d-none');
+  } else if (!spinnerContainer.classList.contains('d-none')) {
+    spinnerContainer.classList.add('d-none');
   }
 };

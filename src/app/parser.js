@@ -1,7 +1,6 @@
-export default rss => {
+export default (rss) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(rss, 'application/xml');
-
   const titleElement = doc.querySelector('title');
   const title = titleElement.textContent;
 
@@ -14,7 +13,7 @@ export default rss => {
   const feed = { title, description, feedLink };
 
   const items = [...doc.querySelectorAll('item')];
-  const posts = items.map(item => {
+  const posts = items.map((item) => {
     const titleItemElement = item.querySelector('title');
     const titleItem = titleItemElement.textContent;
 
@@ -26,7 +25,13 @@ export default rss => {
 
     const postLinkElement = item.querySelector('link');
     const postLink = postLinkElement.textContent;
-    return { titleItem, descriptionItem, pubDate, feedLink, postLink };
+    return {
+      titleItem,
+      descriptionItem,
+      pubDate,
+      feedLink,
+      postLink,
+    };
   });
 
   return { feed, posts };
