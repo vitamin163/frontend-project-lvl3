@@ -30,7 +30,6 @@ export default () => {
 
   const updateFeed = (rss) => {
     const { feed, posts } = parser(rss);
-
     const checkFeed = state.feeds.filter((item) => item.title === feed.title);
 
     if (checkFeed.length === 0) {
@@ -39,11 +38,14 @@ export default () => {
       state.feeds.push(feed);
     }
 
-    const oldPost = state.posts.filter(
-      (post) => post.feedLink === feed.feedLink
+    const addedPosts = state.posts.filter(
+      (post) => post.feedLink === feed.feedLink,
     );
-    const pubDates = oldPost.map((post) => post.pubDate);
+
+    const pubDates = addedPosts.map((post) => post.pubDate);
+
     const latestPostDate = Math.max(...pubDates);
+
     const newPosts = posts.filter((post) => post.pubDate > latestPostDate);
 
     if (newPosts.length > 0) {
@@ -71,12 +73,11 @@ export default () => {
     });
     const promisesAll = Promise.all(promises);
     return promisesAll.then((responses) => {
+      state.requestState = 'received';
       responses.map((promise) => {
         if (promise.result === 'success') {
-          state.requestState = 'success';
           return updateFeed(promise.value.data);
         }
-        state.requestState = 'error';
         return console.log(`${promise.result} ${promise.error}`);
       });
     });
@@ -119,13 +120,10 @@ export default () => {
         renderSpinner('submit');
         renderInput(state);
         break;
-      case 'success':
+      case 'received':
         renderInput(state);
         setTimeout(() => request(state.feedURL, 'loading'), 5000);
-        renderSpinner('success');
-        break;
-      case 'error':
-        renderSpinner('error');
+        renderSpinner('received');
         break;
       default:
     }

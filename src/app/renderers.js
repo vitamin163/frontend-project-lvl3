@@ -48,7 +48,7 @@ export const renderPost = (posts, uniqueId) => {
         liPost.innerHTML = content;
         liPost.append(modal);
         return UlFeed.append(liPost);
-      })
+      }),
     );
   });
 };
@@ -57,7 +57,7 @@ export const renderInput = (stateApp) => {
   const { inputValue, validationState, requestState } = stateApp;
   const input = document.getElementById('main-input');
   const addRssButton = document.querySelector('#addRssButton');
-  if (requestState === 'success') {
+  if (requestState === 'received') {
     input.removeAttribute('disabled');
   }
   if (requestState === 'submit') {
