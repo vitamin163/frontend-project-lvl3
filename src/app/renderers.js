@@ -3,70 +3,102 @@ import _ from 'lodash';
 export const renderFeed = (feeds, feedUniqueId) => {
   const divRss = document.querySelector('#rss');
   const [newFeed] = feeds.filter(feed => feed.newFeedId === feedUniqueId);
-  const UlFeed = document.createElement('ul');
-  UlFeed.classList.add('list-group');
-  UlFeed.id = newFeed.feedLink;
+  const ulFeed = document.createElement('ul');
+  ulFeed.classList.add('list-group');
+  ulFeed.id = newFeed.link;
   const feedTitle = document.createElement('h3');
   feedTitle.textContent = newFeed.title;
   const feedDescription = document.createElement('p');
   feedDescription.textContent = newFeed.description;
-  UlFeed.append(feedTitle, feedDescription);
-  divRss.append(UlFeed);
+  ulFeed.append(feedTitle, feedDescription);
+  divRss.append(ulFeed);
 };
 
 export const renderPost = (posts, uniqueId) => {
   const newPosts = posts.filter(post => post.newPostId === uniqueId);
-  return new Promise((resolve) => {
-    resolve(
-      newPosts.map((post) => {
-        const UlFeed = document.getElementById(post.feedLink);
+  return newPosts.map((post) => {
+    const {
+      title, description, link, feedLink,
+    } = post;
+    const ulFeed = document.getElementById(feedLink);
 
-        const liPost = document.createElement('li');
+    const liPost = document.createElement('li');
 
-        liPost.classList.add('list-group-item');
-        const title = post.titleItem;
-        const description = post.descriptionItem;
-        const link = post.postLink;
-        const modalTemplate = document.querySelector('#myModal');
-        const modal = modalTemplate.cloneNode(true);
-        const modalId = _.uniqueId('myModal_');
-        modal.setAttribute('id', modalId);
-        const modalTitle = modal.querySelector('#modal-title');
-        modalTitle.textContent = title;
-        const modalBody = modal.querySelector('#modal-body');
-        modalBody.textContent = description;
-        const content = `<div class="row">
-            <div class="col-sm-11">
-              <a href="${link}" target="blanc">${title}</a>
-            </div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-info" data-toggle='modal' data-target='#${modalId}'>
-                Read
-              </button>
-            </div>
-          </div>`;
-        liPost.innerHTML = content;
-        liPost.append(modal);
-        return UlFeed.append(liPost);
-      }),
+    liPost.classList.add('list-group-item');
+
+    const modalTemplate = document.querySelector('#myModal');
+    const modal = modalTemplate.cloneNode(true);
+    const modalId = _.uniqueId('myModal_');
+    modal.setAttribute('id', modalId);
+    const modalTitle = modal.querySelector('#modal-title');
+    modalTitle.textContent = title;
+    const modalBody = modal.querySelector('#modal-body');
+    modalBody.textContent = description;
+    const content = (
+      `<div class="row">
+        <div class="col-sm-11">
+          <a href="${link}" target="blanc">${title}</a>
+        </div>
+        <div class="col-sm-1">
+          <button type="button" class="btn btn-info" data-toggle='modal' data-target='#${modalId}'>
+            Read
+          </button>
+        </div>
+      </div>`
     );
+    liPost.innerHTML = content;
+    liPost.append(modal);
+    return ulFeed.append(liPost);
   });
 };
 
+export const renderSubmitError = () => {
+  const alertContainer = document.querySelector('#submitError');
+  const alert = (
+    `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        Не удалось получить данные. Проверьте url или повторите попытку позже.
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>`
+  );
+  alertContainer.innerHTML = alert;
+};
+
 export const renderInput = (stateApp) => {
-  const { inputValue, validationState, requestState } = stateApp;
+  const { requestState } = stateApp;
   const input = document.getElementById('main-input');
   const addRssButton = document.querySelector('#addRssButton');
+
   if (requestState === 'received') {
     input.removeAttribute('disabled');
+    input.value = '';
   }
-  if (requestState === 'submit') {
+  if (requestState === 'receivedAll') {
+    input.removeAttribute('disabled');
+  }
+  if (requestState === 'submitted') {
     input.setAttribute('disabled', 'true');
+    addRssButton.disabled = true;
   }
-  if (validationState === null) {
+  if (requestState === 'error') {
+    input.removeAttribute('disabled');
+    addRssButton.disabled = false;
+  }
+};
+
+export const renderValidation = (state) => {
+  const { inputValue, validationState } = state;
+  const input = document.getElementById('main-input');
+  const addRssButton = document.querySelector('#addRssButton');
+  if (validationState === 'init') {
     addRssButton.disabled = true;
     input.classList.remove('is-valid');
-    input.value = '';
   } else if (!inputValue) {
     addRssButton.disabled = true;
     input.classList.remove('is-invalid');
@@ -84,7 +116,7 @@ export const renderInput = (stateApp) => {
 
 export const renderSpinner = (requestState) => {
   const spinnerContainer = document.getElementById('spinner-container');
-  if (requestState === 'submit') {
+  if (requestState === 'submitted' || requestState === 'loading') {
     spinnerContainer.classList.remove('d-none');
   } else {
     spinnerContainer.classList.add('d-none');

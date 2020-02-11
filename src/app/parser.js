@@ -1,6 +1,10 @@
-export default (rss) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(rss, 'application/xml');
+const parser = (rss) => {
+  const domParser = new DOMParser();
+  return domParser.parseFromString(rss, 'application/xml');
+};
+
+export const getFeed = (rss) => {
+  const doc = parser(rss);
   const titleElement = doc.querySelector('title');
   const title = titleElement.textContent;
 
@@ -8,31 +12,35 @@ export default (rss) => {
   const description = descriptionElement.textContent;
 
   const linkElement = doc.querySelector('link');
-  const feedLink = linkElement.textContent;
+  const link = linkElement.textContent;
 
-  const feed = { title, description, feedLink };
+  return { title, description, link };
+};
 
+export const getPosts = (rss) => {
+  const doc = parser(rss);
   const items = [...doc.querySelectorAll('item')];
+  const linkElement = doc.querySelector('link');
+  const feedLink = linkElement.textContent;
   const posts = items.map((item) => {
-    const titleItemElement = item.querySelector('title');
-    const titleItem = titleItemElement.textContent;
+    const titleElement = item.querySelector('title');
+    const title = titleElement.textContent;
 
-    const descriptionItemElement = item.querySelector('description');
-    const descriptionItem = descriptionItemElement.textContent;
+    const descriptionElement = item.querySelector('description');
+    const description = descriptionElement.textContent;
 
     const pubDateElement = item.querySelector('pubDate');
     const pubDate = Date.parse(pubDateElement.textContent);
 
     const postLinkElement = item.querySelector('link');
-    const postLink = postLinkElement.textContent;
+    const link = postLinkElement.textContent;
     return {
-      titleItem,
-      descriptionItem,
+      title,
+      description,
       pubDate,
+      link,
       feedLink,
-      postLink,
     };
   });
-
-  return { feed, posts };
+  return posts;
 };

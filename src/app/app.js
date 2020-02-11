@@ -4,19 +4,21 @@ import isURL from 'validator/lib/isURL';
 import _ from 'lodash';
 import { watch } from 'melanke-watchjs';
 import axios from 'axios';
-import parser from './parser';
+import { getFeed, getPosts } from './parser';
 import {
   renderFeed,
   renderPost,
   renderInput,
   renderSpinner,
+  renderValidation,
+  renderSubmitError,
 } from './renderers';
 
 export default () => {
   const state = {
-    requestState: null,
+    requestState: 'init',
     inputValue: '',
-    validationState: null,
+    validationState: 'init',
     feedURL: [],
     feeds: [],
     posts: [],
@@ -28,54 +30,62 @@ export default () => {
   let uniqueId;
   let feedUniqueId;
 
-  const updateFeed = (rss) => {
-    const { feed, posts } = parser(rss);
+  const updateFeed = (data) => {
+    const { feed, posts } = data;
     const checkFeed = state.feeds.filter(item => item.title === feed.title);
-
     if (checkFeed.length === 0) {
       feedUniqueId = `feed${_.uniqueId()}`;
       feed.newFeedId = feedUniqueId;
       state.feeds.push(feed);
     }
-
     const addedPosts = state.posts.filter(
-      post => post.feedLink === feed.feedLink,
+      post => post.feedLink === feed.link,
     );
     const newPosts = _.differenceBy(posts, addedPosts, 'pubDate');
-
-    if (newPosts.length > 0) {
-      uniqueId = _.uniqueId();
-      newPosts.forEach((post) => {
-        const newPost = post;
-        newPost.newPostId = uniqueId;
-      });
-      return state.posts.push(...newPosts);
-    }
-    return null;
+    uniqueId = _.uniqueId();
+    const taggedPosts = newPosts.map((post) => {
+      const newPost = post;
+      newPost.newPostId = uniqueId;
+      return newPost;
+    });
+    return state.posts.push(...taggedPosts);
   };
 
-  const request = (links, requestState) => {
+  let timerId = null;
+
+  const request = (links, currentRequestState) => {
     if (links.length <= 0) {
       return null;
     }
-    state.requestState = requestState;
+    state.requestState = currentRequestState;
     const promises = links.map((url) => {
       const link = `https://cors-anywhere.herokuapp.com/${url}`;
       return axios
         .get(link)
-        .then(v => ({ result: 'success', value: v }))
-        .catch(e => ({ result: 'error', error: e }));
+        .then(response => ({ feed: getFeed(response.data), posts: getPosts(response.data) }))
+        .then(res => updateFeed(res));
     });
+
     const promisesAll = Promise.all(promises);
-    return promisesAll.then((responses) => {
-      state.requestState = 'received';
-      setTimeout(() => request(state.feedURL, 'loading'), 5000);
-      responses.map((promise) => {
-        if (promise.result === 'success') {
-          return updateFeed(promise.value.data);
-        }
-        return console.log(`${promise.result} ${promise.error}`);
-      });
+
+    return promisesAll.then((promise) => {
+      if (currentRequestState === 'submitted') {
+        state.requestState = 'received';
+        state.feedURL.push(state.inputValue);
+        state.inputValue = '';
+        return promise;
+      }
+      state.requestState = 'receivedAll';
+      return promise;
+    }).catch((e) => {
+      if (currentRequestState === 'submitted') {
+        state.requestState = 'error';
+        return state.requestState;
+      }
+      return e;
+    }).finally(() => {
+      clearTimeout(timerId);
+      timerId = setTimeout(() => request(state.feedURL, 'loading'), 5000);
     });
   };
 
@@ -86,40 +96,49 @@ export default () => {
 
   const validationHandler = () => {
     const { inputValue } = state;
-    const validation = isURL(inputValue, {
+    const isValidValue = isURL(inputValue, {
       protocols: ['http', 'https'],
       require_protocol: true,
     }) && !state.feedURL.includes(inputValue);
-    state.validationState = validation;
+    state.validationState = isValidValue;
   };
+
 
   const submitHandler = (e) => {
     e.preventDefault();
-    const { inputValue, feedURL } = state;
-    feedURL.push(inputValue);
-    state.inputValue = '';
-    state.validationState = null;
-    request(state.feedURL, 'submit');
+    const { inputValue } = state;
+    state.validationState = 'init';
+    clearTimeout(timerId);
+    request([inputValue], 'submitted');
   };
 
   input.addEventListener('input', inputValueHandler);
   input.addEventListener('input', validationHandler);
   form.addEventListener('submit', submitHandler);
 
-  watch(state, 'inputValue', () => renderInput(state));
+  watch(state, 'inputValue', () => renderValidation(state));
   watch(state, 'feeds', () => renderFeed(state.feeds, feedUniqueId));
   watch(state, 'posts', () => renderPost(state.posts, uniqueId));
   watch(state, 'requestState', () => {
     switch (state.requestState) {
-      case 'submit':
-        renderSpinner('submit');
+      case 'submitted':
+        renderSpinner('submitted');
         renderInput(state);
+        break;
+      case 'error':
+        renderInput(state);
+        renderSpinner('error');
+        renderSubmitError();
         break;
       case 'received':
         renderInput(state);
         renderSpinner('received');
         break;
+      case 'receivedAll':
+        renderSpinner('receivedAll');
+        break;
       default:
+        renderSpinner('loading');
     }
   });
 };
