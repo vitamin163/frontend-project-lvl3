@@ -18,9 +18,9 @@ export const renderPost = (posts, uniqueId) => {
   const newPosts = posts.filter(post => post.newPostId === uniqueId);
   return newPosts.map((post) => {
     const {
-      title, description, link, feedLink,
+      postTitle, postDescription, postLink, link,
     } = post;
-    const ulFeed = document.getElementById(feedLink);
+    const ulFeed = document.getElementById(link);
 
     const liPost = document.createElement('li');
 
@@ -31,13 +31,13 @@ export const renderPost = (posts, uniqueId) => {
     const modalId = _.uniqueId('myModal_');
     modal.setAttribute('id', modalId);
     const modalTitle = modal.querySelector('#modal-title');
-    modalTitle.textContent = title;
+    modalTitle.textContent = postTitle;
     const modalBody = modal.querySelector('#modal-body');
-    modalBody.textContent = description;
+    modalBody.textContent = postDescription;
     const content = (
       `<div class="row">
         <div class="col-sm-11">
-          <a href="${link}" target="blanc">${title}</a>
+          <a href="${postLink}" target="blanc">${postTitle}</a>
         </div>
         <div class="col-sm-1">
           <button type="button" class="btn btn-info" data-toggle='modal' data-target='#${modalId}'>
