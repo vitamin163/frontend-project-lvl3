@@ -83,7 +83,7 @@ export default () => {
       return error;
     }).finally(() => {
       clearTimeout(timerId);
-      timerId = setTimeout(() => refreshAllFeeds(feedsURL), 5000);
+      timerId = setTimeout(() => refreshAllFeeds(feedsURL), 10000);
     });
     return feeds;
   };

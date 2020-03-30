@@ -4,6 +4,16 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const conf = {
+  entry: {
+    app: [
+      './src/index.js',
+    ],
+  },
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].js',
+    publicPath: '',
+  },
   devServer: {
     overlay: true,
     contentBase: path.resolve(__dirname, 'dist'),
